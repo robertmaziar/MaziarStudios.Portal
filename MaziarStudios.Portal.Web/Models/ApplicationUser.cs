@@ -8,5 +8,6 @@ namespace MaziarStudios.Portal.Web.Models
 {
     public class ApplicationUser : IdentityUser
     {
+        public virtual ICollection<EventArtist> EventArtists { get; set; }
     }
 }

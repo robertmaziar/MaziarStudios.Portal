@@ -13,5 +13,23 @@ namespace MaziarStudios.Portal.Web.Data
             : base(options)
         {
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<EventArtist>()
+                .HasKey(ea => new { ea.EventId, ea.ArtistId });
+            modelBuilder.Entity<EventArtist>()
+                .HasOne(ea => ea.Event)
+                .WithMany(e => e.EventArtists)
+                .HasForeignKey(ea => ea.EventId);
+            modelBuilder.Entity<EventArtist>()
+                .HasOne(ea => ea.Artist)
+                .WithMany(a => a.EventArtists)
+                .HasForeignKey(ea => ea.ArtistId);
+        }
+
+        public virtual DbSet<Event> Event { get; set; }
     }
 }
