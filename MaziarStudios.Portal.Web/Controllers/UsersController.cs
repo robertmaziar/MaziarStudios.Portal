@@ -10,18 +10,18 @@ namespace MaziarStudios.Portal.Web.Controllers
 {
     public class UsersController : Controller
     {
-        private UserManager<ApplicationUser> userManager;
-        private IPasswordHasher<ApplicationUser> passwordHasher;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
 
-        public UsersController(UserManager<ApplicationUser> usrMgr, IPasswordHasher<ApplicationUser> passwordHash)
+        public UsersController(UserManager<ApplicationUser> userManager, IPasswordHasher<ApplicationUser> passwordHasher)
         {
-            userManager = usrMgr;
-            passwordHasher = passwordHash;
+            _userManager = userManager;
+            _passwordHasher = passwordHasher;
         }
 
         public IActionResult Index()
         {
-            return View(userManager.Users);
+            return View(_userManager.Users);
         }
 
         public ViewResult Create() => View();
@@ -37,7 +37,7 @@ namespace MaziarStudios.Portal.Web.Controllers
                     Email = user.Email
                 };
 
-                IdentityResult result = await userManager.CreateAsync(appUser, user.Password);
+                IdentityResult result = await _userManager.CreateAsync(appUser, user.Password);
                 if (result.Succeeded)
                     return RedirectToAction("Index");
                 else
@@ -49,9 +49,9 @@ namespace MaziarStudios.Portal.Web.Controllers
             return View(user);
         }
 
-        public async Task<IActionResult> Update(string id)
+        public async Task<IActionResult> Edit(string id)
         {
-            ApplicationUser user = await userManager.FindByIdAsync(id);
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
             if (user != null)
                 return View(user);
             else
@@ -59,9 +59,9 @@ namespace MaziarStudios.Portal.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(string id, string email, string password)
+        public async Task<IActionResult> Edit(string id, string email, string password)
         {
-            ApplicationUser user = await userManager.FindByIdAsync(id);
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
             if (user != null)
             {
                 if (!string.IsNullOrEmpty(email))
@@ -70,13 +70,13 @@ namespace MaziarStudios.Portal.Web.Controllers
                     ModelState.AddModelError("", "Email cannot be empty");
 
                 if (!string.IsNullOrEmpty(password))
-                    user.PasswordHash = passwordHasher.HashPassword(user, password);
+                    user.PasswordHash = _passwordHasher.HashPassword(user, password);
                 else
                     ModelState.AddModelError("", "Password cannot be empty");
 
                 if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(password))
                 {
-                    IdentityResult result = await userManager.UpdateAsync(user);
+                    IdentityResult result = await _userManager.UpdateAsync(user);
                     if (result.Succeeded)
                         return RedirectToAction("Index");
                     else
@@ -91,10 +91,10 @@ namespace MaziarStudios.Portal.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
-            ApplicationUser user = await userManager.FindByIdAsync(id);
+            ApplicationUser user = await _userManager.FindByIdAsync(id);
             if (user != null)
             {
-                IdentityResult result = await userManager.DeleteAsync(user);
+                IdentityResult result = await _userManager.DeleteAsync(user);
                 if (result.Succeeded)
                     return RedirectToAction("Index");
                 else
@@ -102,7 +102,7 @@ namespace MaziarStudios.Portal.Web.Controllers
             }
             else
                 ModelState.AddModelError("", "User Not Found");
-            return View("Index", userManager.Users);
+            return View("Index", _userManager.Users);
         }
 
         private void Errors(IdentityResult result)

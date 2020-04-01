@@ -11,16 +11,16 @@ namespace MaziarStudios.Portal.Web.Controllers
 {
     public class RolesController : Controller
     {
-        private RoleManager<IdentityRole> roleManager;
-        private UserManager<ApplicationUser> userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RolesController(RoleManager<IdentityRole> roleMgr, UserManager<ApplicationUser> userMgr)
+        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
-            roleManager = roleMgr;
-            userManager = userMgr;
+            _roleManager = roleManager;
+            _userManager = userManager;
         }
 
-        public ViewResult Index() => View(roleManager.Roles);
+        public ViewResult Index() => View(_roleManager.Roles);
 
         public IActionResult Create() => View();
 
@@ -29,7 +29,7 @@ namespace MaziarStudios.Portal.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                IdentityResult result = await roleManager.CreateAsync(new IdentityRole(name));
+                IdentityResult result = await _roleManager.CreateAsync(new IdentityRole(name));
                 if (result.Succeeded)
                     return RedirectToAction("Index");
                 else
@@ -38,31 +38,14 @@ namespace MaziarStudios.Portal.Web.Controllers
             return View(name);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Edit(string id)
         {
-            IdentityRole role = await roleManager.FindByIdAsync(id);
-            if (role != null)
-            {
-                IdentityResult result = await roleManager.DeleteAsync(role);
-                if (result.Succeeded)
-                    return RedirectToAction("Index");
-                else
-                    Errors(result);
-            }
-            else
-                ModelState.AddModelError("", "No role found");
-            return View("Index", roleManager.Roles);
-        }
-
-        public async Task<IActionResult> Update(string id)
-        {
-            IdentityRole role = await roleManager.FindByIdAsync(id);
+            IdentityRole role = await _roleManager.FindByIdAsync(id);
             List<ApplicationUser> members = new List<ApplicationUser>();
             List<ApplicationUser> nonMembers = new List<ApplicationUser>();
-            foreach (ApplicationUser user in userManager.Users)
+            foreach (ApplicationUser user in _userManager.Users)
             {
-                var list = await userManager.IsInRoleAsync(user, role.Name) ? members : nonMembers;
+                var list = await _userManager.IsInRoleAsync(user, role.Name) ? members : nonMembers;
                 list.Add(user);
             }
             return View(new RoleEdit
@@ -74,27 +57,28 @@ namespace MaziarStudios.Portal.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Update(RoleModification model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(RoleModification model)
         {
             IdentityResult result;
             if (ModelState.IsValid)
             {
                 foreach (string userId in model.AddIds ?? new string[] { })
                 {
-                    ApplicationUser user = await userManager.FindByIdAsync(userId);
+                    ApplicationUser user = await _userManager.FindByIdAsync(userId);
                     if (user != null)
                     {
-                        result = await userManager.AddToRoleAsync(user, model.RoleName);
+                        result = await _userManager.AddToRoleAsync(user, model.RoleName);
                         if (!result.Succeeded)
                             Errors(result);
                     }
                 }
                 foreach (string userId in model.DeleteIds ?? new string[] { })
                 {
-                    ApplicationUser user = await userManager.FindByIdAsync(userId);
+                    ApplicationUser user = await _userManager.FindByIdAsync(userId);
                     if (user != null)
                     {
-                        result = await userManager.RemoveFromRoleAsync(user, model.RoleName);
+                        result = await _userManager.RemoveFromRoleAsync(user, model.RoleName);
                         if (!result.Succeeded)
                             Errors(result);
                     }
@@ -104,7 +88,25 @@ namespace MaziarStudios.Portal.Web.Controllers
             if (ModelState.IsValid)
                 return RedirectToAction(nameof(Index));
             else
-                return await Update(model.RoleId);
+                return await Edit(model.RoleId);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
+        {
+            IdentityRole role = await _roleManager.FindByIdAsync(id);
+            if (role != null)
+            {
+                IdentityResult result = await _roleManager.DeleteAsync(role);
+                if (result.Succeeded)
+                    return RedirectToAction("Index");
+                else
+                    Errors(result);
+            }
+            else
+                ModelState.AddModelError("", "No role found");
+            return View("Index", _roleManager.Roles);
         }
 
         private void Errors(IdentityResult result)
