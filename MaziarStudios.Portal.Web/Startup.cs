@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MaziarStudios.Portal.Web.Models;
+using Newtonsoft.Json;
 
 namespace MaziarStudios.Portal.Web
 {
@@ -36,6 +37,16 @@ namespace MaziarStudios.Portal.Web
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddRazorPages();
+            services.AddMvc()
+                .AddNewtonsoftJson(
+                options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                });
+                // if you not using .AddMvc use these methods instead 
+                //services.AddControllers().AddNewtonsoftJson(...);
+                //services.AddControllersWithViews().AddNewtonsoftJson(...);
+                //services.AddRazorPages().AddNewtonsoftJson(...);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

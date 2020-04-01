@@ -7,16 +7,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MaziarStudios.Portal.Web.Data;
 using MaziarStudios.Portal.Web.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace MaziarStudios.Portal.Web.Controllers
 {
     public class EventsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public EventsController(ApplicationDbContext context)
+        public EventsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Events
@@ -155,6 +160,46 @@ namespace MaziarStudios.Portal.Web.Controllers
         private bool EventExists(int id)
         {
             return _context.Event.Any(e => e.Id == id);
+        }
+
+        public async Task<IActionResult> GetAllEvents()
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(HttpContext.User);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            List<EventArtist> eventArtists = new List<EventArtist>();
+            eventArtists = await _context.EventArtist.Where(x => x.ArtistId == user.Id).ToListAsync();
+
+            List<Event> events = new List<Event>();
+            events = await _context.Event.ToListAsync();
+
+
+            if (roles.Contains("Admin"))
+            {
+                return Json(events);
+            }
+            else if (roles.Contains("Artist"))
+            {
+                List<Event> artistEvents = new List<Event>();
+
+                foreach (Event @event in events)
+                {
+                    EventArtist eventArtist = await _context.EventArtist
+                        .Where(x => x.EventId == @event.Id && x.ArtistId == user.Id)
+                        .FirstOrDefaultAsync();
+                    
+                    if (eventArtist != null)
+                    {
+                        artistEvents.Add(@event);
+                    }
+                }
+
+                return Json(artistEvents);
+            }
+            else
+            {
+                return Json(events.Where(x => x.ClientId == user.Id));
+            }
         }
     }
 }

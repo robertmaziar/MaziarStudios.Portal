@@ -9,34 +9,22 @@
 <script src='~/fullcalendar/daygrid/main.js'></script>
 
 <script>
-
     document.addEventListener('DOMContentLoaded', function () {
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            plugins: ['dayGrid']
+            plugins: ['dayGrid'],
+            eventSources: [
+                {
+                    url: '@Url.Action("GetAllEvents", "")',
+                    //color: 'yellow',    // an option!
+                    //textColor: 'black'  // an option!
+                }
+            ]
         });
-
 
         calendar.render();
     });
-
-    //$('#calendar').fullCalendar({
-    //    plugins: ['dayGrid'],
-    //    events: [
-    //        {
-    //            title: 'Event Title1',
-    //            start: '2020-03-17T13:13:55.008',
-    //            end: '2020-03-19T13:13:55.008'
-    //        },
-    //        {
-    //            title: 'Event Title2',
-    //            start: '2020-03-17T13:13:55-0400',
-    //            end: '2020-03-19T13:13:55-0400'
-    //        }
-    //    ]
-    //});
-
 </script>
 
 <div class="text-center">

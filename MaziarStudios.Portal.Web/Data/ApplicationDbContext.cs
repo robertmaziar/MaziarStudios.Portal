@@ -30,6 +30,7 @@ namespace MaziarStudios.Portal.Web.Data
                 .HasForeignKey(ea => ea.ArtistId);
         }
 
+        public virtual DbSet<EventArtist> EventArtist { get; set; }
         public virtual DbSet<Event> Event { get; set; }
     }
 }
