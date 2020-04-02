@@ -16,11 +16,28 @@
             plugins: ['dayGrid'],
             eventSources: [
                 {
-                    url: '@Url.Action("GetAllEvents", "")',
+                    url: '@Url.Action("GetAllEvents", "Events")',
                     //color: 'yellow',    // an option!
                     //textColor: 'black'  // an option!
                 }
-            ]
+            ],
+            eventClick: function (info) {
+                var protocol = window.location.protocol;
+                var hostname = window.location.hostname;
+                var port = window.location.port;
+                var url = '';
+
+                if (port != null && port != undefined) {
+                    url = protocol + '//' + hostname + ':' + port + '@Url.Action("Details", "Events")?id=' + info.event.id;
+                }
+                else {
+                    url = protocol + '//' + hostname + '@Url.Action("Details", "Events")?id=' + info.event.id;
+                }
+
+                window.location = url;
+                // change the border color just for fun
+                info.el.style.borderColor = 'red';
+            }
         });
 
         calendar.render();

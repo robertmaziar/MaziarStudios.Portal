@@ -34,7 +34,8 @@ namespace MaziarStudios.Portal.Web.Controllers
                 ApplicationUser appUser = new ApplicationUser
                 {
                     UserName = user.Name,
-                    Email = user.Email
+                    Email = user.Email,
+                    EmailConfirmed = true
                 };
 
                 IdentityResult result = await _userManager.CreateAsync(appUser, user.Password);
