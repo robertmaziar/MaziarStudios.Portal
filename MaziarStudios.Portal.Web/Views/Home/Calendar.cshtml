@@ -1,0 +1,52 @@
+﻿
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<link href='~/fullcalendar/core/main.css' rel='stylesheet' />
+<link href='~/fullcalendar/daygrid/main.css' rel='stylesheet' />
+
+<script src='~/fullcalendar/core/main.js'></script>
+<script src='~/fullcalendar/daygrid/main.js'></script>
+
+<div id="calendar"></div>
+<style>
+    .fc-view-container {
+        box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15) !important;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: ['dayGrid'],
+            eventSources: [
+                {
+                    url: '@Url.Action("GetAllEvents", "Events")',
+                    //color: 'yellow',    // an option!
+                    textColor: 'white'  // an option!
+                }
+            ],
+            eventClick: function (info) {
+                var protocol = window.location.protocol;
+                var hostname = window.location.hostname;
+                var port = window.location.port;
+                var url = '';
+
+                if (port != null && port != undefined) {
+                    url = protocol + '//' + hostname + ':' + port + '@Url.Action("Details", "Events")?id=' + info.event.id;
+                }
+                else {
+                    url = protocol + '//' + hostname + '@Url.Action("Details", "Events")?id=' + info.event.id;
+                }
+
+                window.location = url;
+                // change the border color just for fun
+                info.el.style.borderColor = 'red';
+            }
+        });
+
+        calendar.render();
+    });
+</script>

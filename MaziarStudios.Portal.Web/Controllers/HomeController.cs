@@ -23,6 +23,11 @@ namespace MaziarStudios.Portal.Web.Controllers
             return View();
         }
 
+        public IActionResult Calendar()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
